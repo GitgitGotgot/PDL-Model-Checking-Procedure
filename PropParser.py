@@ -30,28 +30,85 @@ OR_OPERATOR = 3
 class Formula():
     def __init__(self, atoms):
         self.atoms = atoms
-    def parse(self, input_string):
+    def parse(self, i_s):
         stack = [[]]
-        for x in input_string:
-            if x == '(':
-                stack[-1].append([])
-                stack.append(stack[-1][-1])
+        unary = False
+        program = False
+        for x in i_s:
+            if x == '!':
+                unary = True
+            elif x == '<' or x == '[':
+                program = True
+                prog = [x,[]]
+                #stack[-1].append(x)
+            elif x == '(':
+                if program:
+                    print(prog)
+                    prog[-1].append([])
+                    #print(prog)
+                    prog.append(prog[-1][-1])
+                else:
+                    stack[-1].append([])
+                    stack.append(stack[-1][-1])
             elif x == ')':
-                stack.pop()
-                if not stack:
-                    return 'error: opening bracket is missing'
+                if program:
+                    #print(prog)
+                    prog.pop()
+                    if not prog:
+                        return 'error: opening bracket is missing'
+                else:
+                    stack.pop()
+                    if not stack:
+                        return 'error: opening bracket is missing'
                     #raise ValueError('error: opening bracket is missing')
+            elif x == '>' or x == ']':
+                program = False
+                stack[-1].append(prog)
             else:
-                stack[-1].append(x)
-        if len(stack) > 1:
-            return 'error: closing bracket is missing'
+                if unary and not program:
+                    stack[-1].append(['!', x])
+                    unary = False
+                elif program:
+                    if unary:
+                        prog[-1].append(['!', x])
+                        unary = False
+                    else:
+                        prog[-1].append(x)
+                else:
+                    stack[-1].append(x)
+        #if len(stack) > 1:
+            #return 'error: closing bracket is missing'
             #raise ValueError('error: closing bracket is missing')
         return stack.pop()
+
+def foo(s):
+    def foos(s):
+        return s
+    def foo_helper(level=0):
+        try:
+            token = next(tokens)
+        except StopIteration:
+            if level != 0:
+                raise Exception('missing closing paren')
+            else:
+                return []
+        if token == ')':
+            if level == 0:
+                raise Exception('missing opening paren')
+            else:
+                return []
+        elif token == '(':
+            return [foo_helper(level+1)] + foo_helper(level)
+        else:
+            return [token] + foo_helper(level)
+    tokens = iter(s)
+    return foos(foo_helper())
 
 c = Formula(['p','q'])
 # !(p&q) Or (!p & !q)
 s = input("Enter a logical formula: ")
 print(c.parse(s))
+#print(foo(s))
 # parsed = c.parse("<a>(!p&q)")
 # print(parsed)
 # <a;(bUc)>p
