@@ -18,18 +18,116 @@ from nltk import Tree
 t = Tree.fromstring('(-pi & fi)')
 t.pretty_print()
 """
-# PL Precedances
-NOT_OPERATOR = 1
-AND_OPERATOR = 2
-OR_OPERATOR = 3
 
 # kripke model is already given so we know the atoms
 # https://stackoverflow.com/questions/17140850/how-to-parse-a-string-and-return-a-nested-array/17141899#17141899
 # make negation and proposition 1 input_string
 # make program one string
+
 class Formula():
     def __init__(self, atoms):
         self.atoms = atoms
+        #self.programs = {'<':[False, '>'], '[':[False, ']']}
+        self.open_prog_brac = {'<':False, '[':False}
+        self.close_prog_brac = {'>':'<', ']':'['}
+        self.negation = False
+        self.negation_brac = False
+    def parse(self, i_s):
+        stack = [[]]
+        for x in i_s:
+            if x == '!':
+                self.negation = True
+            elif x == '<' or x == '[':
+                self.open_prog_brac[x] = True
+                stack[-1].append([x,[]])
+                stack.append(stack[-1][-1][-1])
+            elif x == '(':
+                if self.negation:
+                    self.negation_brac = True
+                    self.negation = False
+                stack[-1].append([])
+                stack.append(stack[-1][-1])
+            elif x == ')':
+                stack.pop()
+                if not stack:
+                    return 'error: opening bracket is missing'
+                if self.negation_brac:
+                    stack[-1][-1] = ['!', [stack[-1][-1]]]
+                    self.negation_brac = False
+            elif x == '>' or x == ']':
+                stack.pop()
+                if not self.open_prog_brac[self.close_prog_brac[x]]:
+                    return 'error: misaligned program brackets'
+            else:
+                if self.negation:
+                    stack[-1].append(['!',x])
+                    self.negation = False
+                else:
+                    stack[-1].append(x)
+        if len(stack) > 1:
+            return 'error: closing bracket is missing'
+        if len(stack[0] > 3):
+            return 'error: invalid formula'
+        return stack.pop()
+
+"""
+    def parse3(self, xs):
+        for i, s in enumerate(xs):
+            print(s)
+            if isinstance(s, list):
+                xs[i] = self.parse3(s)
+            elif s == '<' or '[' or '!':
+                xs[i] = [s, [self.parse3(xs[i+1:])]]
+            elif s == '>' or ']':
+                return xs.append(xs[i+1:])
+            else:
+                return xs
+    def parse2(self, xs):
+        stack = [[]]
+        for x in xs:
+            if x == '(':
+                stack[-1].append([])
+                stack.append(stack[-1][-1])
+            elif x == ')':
+                stack.pop()
+                if not stack:
+                    return 'error: opening bracket is missing'
+                #else:
+                    #stack[-1][-1] = parse3(stack[-1][-1])
+                    #raise ValueError('error: opening bracket is missing')
+            else:
+                stack[-1].append(x)
+        if len(stack) > 1:
+            return 'error: closing bracket is missing'
+            #raise ValueError('error: closing bracket is missing')
+        return self.parse3(stack.pop())
+    def parse_input(self, i_s):
+        def parser(k=0, unary=False):
+            if unary:
+                temp = [unary,[]]
+            else:
+                temp = ret
+            for i in range(k, len(i_s)):
+                if i_s[i] == '(':
+                    temp[-1].append([])
+                    temp.append(temp[-1][-1])
+                elif i_s[i] == ')':
+                    temp.pop()
+                    if not temp:
+                        return 'error: opening parentheses bracket is missing'
+                elif i_s[i] == '!' or i_s[i] == '<' or i_s[i] == '[':
+                    temp[-1].append(parser(i+1, i_s[i]))
+                elif i_s[i] == '>' or i_s[i] == ']':
+                    if unary:
+                        return temp
+                    else:
+                        return 'error: opening program bracket is missing'
+                else:
+                    temp[-1].append(x)
+                return temp
+        ret = [[]]
+        ret = parser()
+        return ret
     def parse(self, i_s):
         stack = [[]]
         unary = False
@@ -43,7 +141,7 @@ class Formula():
                 #stack[-1].append(x)
             elif x == '(':
                 if program:
-                    print(prog)
+                    #print(prog)
                     prog[-1].append([])
                     #print(prog)
                     prog.append(prog[-1][-1])
@@ -80,34 +178,38 @@ class Formula():
             #return 'error: closing bracket is missing'
             #raise ValueError('error: closing bracket is missing')
         return stack.pop()
-
-def foo(s):
-    def foos(s):
-        return s
-    def foo_helper(level=0):
-        try:
-            token = next(tokens)
-        except StopIteration:
-            if level != 0:
-                raise Exception('missing closing paren')
+    def foo(self, s):
+        def foo_helper(level=0):
+            try:
+                token = next(tokens)
+            except StopIteration:
+                if level != 0:
+                    raise Exception('missing closing paren')
+                else:
+                    return []
+            if token == ')' or token == '>':
+                if level == 0:
+                    raise Exception('missing opening paren')
+                else:
+                    return []
+            elif token == '(':
+                return [foo_helper(level+1)] + foo_helper(level)
+            elif token == '<':
+                return [token, foo_helper(level+1)] + foo_helper(level)
             else:
-                return []
-        if token == ')':
-            if level == 0:
-                raise Exception('missing opening paren')
-            else:
-                return []
-        elif token == '(':
-            return [foo_helper(level+1)] + foo_helper(level)
-        else:
-            return [token] + foo_helper(level)
-    tokens = iter(s)
-    return foos(foo_helper())
+                return [token] + foo_helper(level)
+        tokens = iter(s)
+        return foo_helper()
+"""
 
-c = Formula(['p','q'])
-# !(p&q) Or (!p & !q)
-s = input("Enter a logical formula: ")
-print(c.parse(s))
+while True:
+    c = Formula(['p','q'])
+    # !(p&q) Or (!p & !q)
+    s = input("Enter a logical formula: ")
+    print(c.parse(s))
+    #print(c.parse2(s))
+    #print(c.foo(s))
+
 #print(foo(s))
 # parsed = c.parse("<a>(!p&q)")
 # print(parsed)
