@@ -21,55 +21,105 @@ t.pretty_print()
 
 # kripke model is already given so we know the atoms
 # https://stackoverflow.com/questions/17140850/how-to-parse-a-string-and-return-a-nested-array/17141899#17141899
-# make negation and proposition 1 input_string
+# make unary and proposition 1 input_string
 # make program one string
 
 class Formula():
     def __init__(self, atoms):
         self.atoms = atoms
         #self.programs = {'<':[False, '>'], '[':[False, ']']}
-        self.open_prog_brac = {'<':False, '[':False}
-        self.close_prog_brac = {'>':'<', ']':'['}
-        self.negation = False
-        self.negation_brac = False
+        self.open_brac = {'<':False, '[':False, '(':True}
+        self.close_brac = {'>':'<', ']':'[', ')':'('}
+        #self.unary_operators = ['!', '?']
+        #self.unary_operators = {'!':False, '?':True}
+        self.unary = False
+        self.unary_brac = False
     def parse(self, i_s):
         stack = [[]]
         for x in i_s:
             if x == '!':
-                self.negation = True
+                self.unary = True
             elif x == '<' or x == '[':
-                self.open_prog_brac[x] = True
+                self.open_brac[x] = True
                 stack[-1].append([x,[]])
                 stack.append(stack[-1][-1][-1])
             elif x == '(':
-                if self.negation:
-                    self.negation_brac = True
-                    self.negation = False
+                if self.unary:
+                    self.unary_brac = True
+                    self.unary = False
                 stack[-1].append([])
                 stack.append(stack[-1][-1])
             elif x == ')':
                 stack.pop()
                 if not stack:
                     return 'error: opening bracket is missing'
-                if self.negation_brac:
-                    stack[-1][-1] = ['!', [stack[-1][-1]]]
-                    self.negation_brac = False
+                if self.unary_brac:
+                    stack[-1][-1] = ['!', stack[-1][-1]]
+                    self.unary_brac = False
             elif x == '>' or x == ']':
                 stack.pop()
-                if not self.open_prog_brac[self.close_prog_brac[x]]:
+                if not self.open_brac[self.close_brac[x]]:
                     return 'error: misaligned program brackets'
             else:
-                if self.negation:
+                if self.unary:
                     stack[-1].append(['!',x])
-                    self.negation = False
+                    self.unary = False
                 else:
                     stack[-1].append(x)
         if len(stack) > 1:
             return 'error: closing bracket is missing'
-        if len(stack[0] > 3):
+        if len(stack[0]) > 3:
             return 'error: invalid formula'
         return stack.pop()
+    def parse_rec(self, i_s):
+        def help_func(level=0):
+            try:
+                token = next(tokens)
+                print(token)
+            except StopIteration:
+                    return []
+            if token == ')' or token == '>' or token == ']':
+                if level == 0:
+                    raise Exception('missing opening paren')
+                else:
+                    #if unary_brac:
+                        #unary_brac = False
+                    return []
+            elif token == '(':
+                #if unary:
+                    #unary = False
+                    #return [help_func(level+1, unary_brac=True)] + help_func(level)
+                return [help_func(level+1)] + help_func(level)
+            elif token == '<' or token == '[':
+                return [token, help_func(level+1)] + help_func(level)
+            elif token == '!':
+                #return [token, help_func(level+1, unary=True)] + help_func(level)
+                return [token, help_func(level+1)] + help_func(level)
+            else:
+                #if unary:
+                    #unary = False
+                    #return [['!', token]] + help_func(level)
+                return [token] + help_func(level)
+        tokens = iter(i_s)
+        return help_func()
 
+# have dict with true values to check for opening and closing brackets and unary operator handling
+    def parse_rec2(self, s):
+        def foo_helper(level=0):
+            try:
+                token = next(tokens)
+            except StopIteration:
+                return []
+            if token == ']' or token == '>' or token == ')':
+                return []
+            elif token == '(':
+                return [foo_helper(level+1)] + foo_helper(level)
+            elif token == '<' or token == '[' or token == '!' or token == '?':
+                return [token, foo_helper(level+1)] + foo_helper(level)
+            else:
+                return [token] + foo_helper(level)
+        tokens = iter(s)
+        return foo_helper()
 """
     def parse3(self, xs):
         for i, s in enumerate(xs):
@@ -206,7 +256,13 @@ while True:
     c = Formula(['p','q'])
     # !(p&q) Or (!p & !q)
     s = input("Enter a logical formula: ")
-    print(c.parse(s))
+    ret = c.parse(s)
+    print(ret)
+    #print(ret[0])
+    #print(ret[0][1])
+    #print(ret[0][1][2])
+    #print(ret[0][1][2][0])
+    print(c.parse_rec2(s))
     #print(c.parse2(s))
     #print(c.foo(s))
 
