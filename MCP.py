@@ -35,9 +35,13 @@ Adj_M['c'] = np.array([[0,0,0,0,1],
               [0,0,0,0,0],
               [0,0,0,0,0],
               [0,0,0,0,0]], dtype=bool)
+# Adj_M['a'] = np.array([[0,1,1],
+#                        [0,0,0],
+#                        [0,0,0]], dtype=bool)
 State_V = {}
 State_V['p'] = np.array([0,1,0,1,0], dtype=bool)
 State_V['q'] = np.array([0,1,1,0,1], dtype=bool)
+# State_V['q'] = np.array([0,1,0], dtype=bool)
 class Kripke:
     def __init__(self, Adj_M, State_V):
         self.Adj_M = Adj_M
@@ -71,7 +75,7 @@ class Kripke:
                 print('prog')
                 print((self.Prog(formula[1])^1).astype(int))
                 print('ret')
-                print(self.diamond_op(self.Prog(formula[1])^1, self.MCP(formula[2])^1).astype(int))
+                print((self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1).astype(int))
                 return self.diamond_op(self.Prog(formula[1])^1, self.MCP(formula[2])^1)
             # elif formula[0] == '!':
             #     return self.MCP(formula[0])^1
@@ -118,6 +122,9 @@ class Kripke:
                 prog = self.Prog(program[1])
                 return np.identity(len(prog), dtype=bool) | self.kleene_plus(prog)
             if program[1] == ';':
+                # print(self.Prog(program[0]).astype(int))
+                # print(';')
+                # print(self.Prog(program[2]).astype(int))
                 return self.m_composition(self.Prog(program[0]), self.Prog(program[2]))
             if program[1] == 'U':
                 # should be random choice
