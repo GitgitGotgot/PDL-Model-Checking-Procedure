@@ -13,7 +13,7 @@ class PDLparser():
         #self.unary_operators = {'!':False, '?':True}
         self.negation = False
         self.valid_prop_op = ['&']
-        self.valid_prog_op = [';','U', '*']
+        self.valid_prog_op = [';','U', 'X']
         self.active_program = False
         self.unary_brac = False
 
@@ -34,16 +34,16 @@ class PDLparser():
             elif x == '>' or x == ']':
                 stack.pop()
                 if len(stack[-1][-1]) > 3:
-                    return 'error: invalid program'
+                    return 'error: to many arguments between parentheses'
                 if not self.open_brac[self.close_brac[x]]:
                     return 'error: misaligned program brackets'
                 self.open_brac[self.close_brac[x]] = False
                 self.active_program = False
-            elif x == '*':
+            elif x == '*' or x == '?' or x == 'c':
                 if not self.active_program:
                     return 'error: program operator used outside program'
                 else:
-                    stack[-1][-1] = ['*', stack[-1][-1]]
+                    stack[-1][-1] = [x, stack[-1][-1]]
             elif x == '(':
                 if self.negation:
                     self.negation = False
@@ -59,12 +59,13 @@ class PDLparser():
                 if not stack:
                     return 'error: opening bracket is missing'
                 if len(stack[-1][-1]) > 3:
-                    return 'error: invalid PDLparser'
+                    return 'error: to many arguments between parentheses'
                 #if self.unary_brac:
                     #stack[-1][-1] = ['!', stack[-1][-1]]
                     #self.unary_brac = False
             else:
-                if self.active_program and x not in self.valid_prog_op and x not in self.programs:
+                if self.active_program and x not in self.valid_prog_op and x not in self.programs and x not in self.atoms:
+                #if self.active_program and x not in self.valid_prog_op and x not in self.programs:
                     #print(x)
                     return 'error: invalid character in program'
                 elif not self.active_program and x not in self.valid_prop_op and x not in self.atoms:
@@ -113,7 +114,7 @@ class PDLparser():
                 return [token] + help_func(level)
         tokens = iter(i_s)
         return help_func()
-"""
+
 while True:
     c = PDLparser(['p','q','r','s'],['a','b','c','d'])
     # !(p&q) Or (!p & !q)
@@ -121,7 +122,7 @@ while True:
     #ret = c.parse_rec(s)
     ret = c.parse2(s)
     print(ret)
-"""
+
     #print(ret[0])
     #print(ret[0][1])
     #print(ret[0][1][2])
