@@ -1,5 +1,4 @@
 import numpy as np
-import random
 from PropParser import PDLparser
 """
 kript struct:
@@ -80,8 +79,9 @@ class Kripke:
             if formula[0] == '!':
                 return self.MCP(formula[1])^1
             if formula[1] == '&':
-                #print(self.MCP(formula[0]) & self.MCP(formula[2]))
                 return self.MCP(formula[0]) & self.MCP(formula[2])
+            if formula[1] == '/':
+                return self.MCP(formula[0]) | self.MCP(formula[2])
         else:
             return State_V[formula]
 
@@ -92,16 +92,23 @@ class Kripke:
                 return self.Prog(program[0])
             if program[0] == '!':
                 return self.Prog(program[1])^1
+            if program[0] == 'c':
+                return np.transpose(self.Prog(program[1]))
             if program[0] == '+':
                 prog = self.Prog(program[1])
                 return self.kleene_plus(prog)
             if program[0] == '*':
                 prog = self.Prog(program[1])
                 return np.identity(len(prog), dtype=bool) | self.kleene_plus(prog)
+            if program[0] == '?':
+                return np.diag(self.MCP(program[1]))
+                #return np.identity(len(prog), dtype=bool) | self.kleene_plus(prog)
             if program[1] == ';':
                 return self.m_composition(self.Prog(program[0]), self.Prog(program[2]))
             if program[1] == 'U':
                 return self.Prog(program[0]) | self.Prog(program[2])
+            if program[1] == 'X':
+                return self.Prog(program[0]) & self.Prog(program[2])
         else:
             return self.Adj_M[program]
 
@@ -120,10 +127,12 @@ class Kripke:
     def kleene_plus(self, program):
         prog = program
         ret = program
-        for i in range(random.randint(1, 20)):
+        # for i in range(random.randint(1, 20)):
+        for i in range(len(program)^2):
             prog = self.m_composition(prog, program)
             ret = ret | prog
         return ret
+
 
 k = Kripke(Adj_M, State_V)
 while True:
