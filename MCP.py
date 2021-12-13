@@ -1,5 +1,6 @@
 import numpy as np
 from PropParser import PDLparser
+from ModelGen import ModelGen
 """
 kript struct:
 Adj_M = {program key: adjacency matrix}
@@ -13,33 +14,25 @@ function that checks if formula is valid in current adjacency matrix
 'NoneType'
 <!a> wordt [<,[]]
 """
-Adj_M = {}
-Adj_M['START'] = np.array([[0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0]], dtype=bool)
-Adj_M['a'] = np.array([[0,1,0,0,0],
-              [0,1,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0]], dtype=bool)
-Adj_M['b'] = np.array([[0,0,0,0,0],
-              [0,0,1,1,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0]], dtype=bool)
-Adj_M['c'] = np.array([[0,0,0,0,1],
-              [0,0,0,0,1],
-              [0,0,0,0,0],
-              [0,0,0,0,0],
-              [0,0,0,0,0]], dtype=bool)
-# Adj_M['a'] = np.array([[0,1,1],
-#                        [0,0,0],
-#                        [0,0,0]], dtype=bool)
-State_V = {}
-State_V['p'] = np.array([0,1,0,1,0], dtype=bool)
-State_V['q'] = np.array([0,1,1,0,1], dtype=bool)
+# Adj_M = {}
+# Adj_M['a'] = np.array([[0,1,0,0,0],
+#               [0,1,0,0,0],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0]], dtype=bool)
+# Adj_M['b'] = np.array([[0,0,0,0,0],
+#               [0,0,1,1,0],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0]], dtype=bool)
+# Adj_M['c'] = np.array([[0,0,0,0,1],
+#               [0,0,0,0,1],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0],
+#               [0,0,0,0,0]], dtype=bool)
+# State_V = {}
+# State_V['p'] = np.array([0,1,0,1,0], dtype=bool)
+# State_V['q'] = np.array([0,1,1,0,1], dtype=bool)
 # State_V['q'] = np.array([0,1,0], dtype=bool)
 class Kripke:
     def __init__(self, Adj_M, State_V):
@@ -47,11 +40,10 @@ class Kripke:
         self.State_V = State_V
         self.atoms = State_V.keys()
         self.programs = Adj_M.keys()
-    def Input_Function(self, input_formula):
-        """
-
-        """
-        formula = PDLparser(self.atoms, self.programs).parse2(input_formula)
+    def Input_Function(self, input_formula=False, tests=False):
+        formula = PDLparser(self.atoms, self.programs).parse(input_formula)
+        #print(self.MCP(formula))
+        print('test: ', formula)
         self.MCP(formula)
         # return any true from MCP
 
@@ -67,15 +59,18 @@ class Kripke:
                 print(self.Prog(formula[1]).astype(int))
                 print('ret')
                 print(self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])).astype(int))
+                print('')
                 return self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2]))
             if formula[0] == '[':
+                # print('formula')
                 print('formula')
                 print((self.MCP(formula[2])^1).astype(int))
                 print('prog')
                 print((self.Prog(formula[1])).astype(int))
                 print('ret')
-                print((self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1).astype(int))
-                return self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1
+                print(self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1)
+                print('')
+                return (self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1).astype(bool)
             if formula[0] == '!':
                 return self.MCP(formula[1])^1
             if formula[1] == '&':
@@ -92,7 +87,7 @@ class Kripke:
                 return self.Prog(program[0])
             if program[0] == '!':
                 return self.Prog(program[1])^1
-            if program[0] == 'c':
+            if program[0] == "'":
                 return np.transpose(self.Prog(program[1]))
             if program[0] == '+':
                 prog = self.Prog(program[1])
@@ -113,10 +108,19 @@ class Kripke:
             return self.Adj_M[program]
 
     def m_composition(self, m1, m2):
+        ret = np.zeros((len(m1), len(m1)), dtype=bool)
         for i in range(len(m1)):
-            if not 1 in m1[i]:
-                m2[i].fill(0)
-        return m2
+            for j in range(len(m1[i])):
+                # print(np.any(np.transpose(m2)[j]))
+                # print( np.any(m1[i]))
+                # print(ret[i][j])
+                #if np.any(m1[i])
+                ret[i][j] = ret[i][j] | (np.any(m1[i]) & np.any(np.transpose(m2)[j]))
+        # for i in range(len(m1)):
+        #     if not 1 in m1[i]:
+        #         m2[i].fill(0)
+        # return m2
+        return ret
 
     def diamond_op(self, m1, v1):
         ret = np.zeros((len(v1)), dtype=bool)
@@ -133,8 +137,12 @@ class Kripke:
             ret = ret | prog
         return ret
 
-
+State_V, Adj_M, Tests = ModelGen('Test.txt')
 k = Kripke(Adj_M, State_V)
 while True:
     s = input("Enter a logical formula: ")
-    k.Input_Function(s)
+    if s == 'T':
+        for t in Tests:
+            k.Input_Function(t)
+    else:
+        k.Input_Function(s)
