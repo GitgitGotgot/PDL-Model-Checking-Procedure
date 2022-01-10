@@ -32,4 +32,6 @@ c
 
 TESTS
 <a;b*>(p&!q)
+[a;b*](p&!q)
 [a+](p&q)
+[a*]p
