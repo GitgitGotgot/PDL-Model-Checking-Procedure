@@ -1,44 +1,54 @@
 # kripke model is already given so we know the atoms
 # https://stackoverflow.com/questions/17140850/how-to-parse-a-string-and-return-a-nested-array/17141899#17141899
 
+# ! is logical negation (and the only unary operator)/NOT
+# & is logical conjunction/AND
+# / is logical disjunction/OR
+#
+# * is kleene star operator
+# + is kleene plus operator
+# ? is test unary_operators
+# ' is complement
+
 class PDLparser():
     def __init__(self, atoms, programs):
         self.atoms = atoms
         self.programs = programs
-        #self.programs = {'<':[False, '>'], '[':[False, ']']}
         self.open_brac = {'<':False, '[':False, '(':False}
         self.close_brac = {'>':'<', ']':'[', ')':'('}
         self.unary_op = {'!':False, '?':False}
-        #self.unary_operators = ['!', '?']
-        #self.unary_operators = {'!':False, '?':True}
+        self.imp_arrow = False
         self.negation = False
         self.valid_prop_op = ['&', '/']
-        self.valid_prog_op = [';','U', 'X']
+        self.valid_prog_op = [';','U', 'X', 'R', 'L']
         self.active_program = False
-        self.unary_brac = False
 
-    # for future -> operator
-    # maybe first strip string into literals [(,q,&,b,),->,c] then iterate
     def parse(self, i_s):
         stack = [[]]
         for x in i_s:
             if x == '!':
                 self.negation = True
+            elif x == '-':
+                if self.imp_arrow:
+                    return 'error: invalid formula, expected implication arrow due to -'
+                self.imp_arrow = True
             elif x == '<' or x == '[':
                 self.open_brac[x] = True
                 self.active_program = True
                 stack[-1].extend([x,[]])
                 stack.append(stack[-1][-1])
-                # stack[-1].append([x,[]])
-                # stack.append(stack[-1][-1][-1])
             elif x == '>' or x == ']':
-                stack.pop()
-                if len(stack[-1][-1]) > 3:
-                    return 'error: to many arguments between parentheses'
-                if not self.open_brac[self.close_brac[x]]:
-                    return 'error: misaligned program brackets'
-                self.open_brac[self.close_brac[x]] = False
-                self.active_program = False
+                if self.imp_arrow and x == '>':
+                    stack[-1].append('->')
+                    self.imp_arrow = False
+                else:
+                    stack.pop()
+                    if len(stack[-1][-1]) > 3:
+                        return 'error: to many arguments between parentheses'
+                    if not self.open_brac[self.close_brac[x]]:
+                        return 'error: misaligned program brackets'
+                    self.open_brac[self.close_brac[x]] = False
+                    self.active_program = False
             elif x == '+' or x == '*' or x == '?' or x == "'":
                 if not self.active_program:
                     return 'error: program operator used outside program'
@@ -47,8 +57,6 @@ class PDLparser():
             elif x == '(':
                 if self.negation:
                     self.negation = False
-                    # stack[-1].extend(['!',[]])
-                    # stack.append(stack[-1][-1])
                     stack[-1].append(['!',[]])
                     stack.append(stack[-1][-1][-1])
                 else:
@@ -60,23 +68,19 @@ class PDLparser():
                     return 'error: opening bracket is missing'
                 if len(stack[-1][-1]) > 3:
                     return 'error: to many arguments between parentheses'
-                #if self.unary_brac:
-                    #stack[-1][-1] = ['!', stack[-1][-1]]
-                    #self.unary_brac = False
             else:
-                if self.active_program and x not in self.valid_prog_op and x not in self.programs and x not in self.atoms:
-                #if self.active_program and x not in self.valid_prog_op and x not in self.programs:
-                    #print(x)
-                    return 'error: invalid character in program'
-                elif not self.active_program and x not in self.valid_prop_op and x not in self.atoms:
-                    #print(x)
-                    return 'error: invalid character in formula'
+                # if self.active_program and x not in self.valid_prog_op and x not in self.programs and x not in self.atoms:
+                #     return 'error: invalid character in program'
+                # elif not self.active_program and x not in self.valid_prop_op and x not in self.atoms:
+                #     return 'error: invalid character in formula'
+                # if self.imp_arrow:
+                #     return 'error: invalid formula, expected implication arrow due to -'
+                # else:
+                if self.negation:
+                    stack[-1].append(['!', x])
+                    self.negation = False
                 else:
-                    if self.negation:
-                        stack[-1].append(['!',x])
-                        self.negation = False
-                    else:
-                        stack[-1].append(x)
+                    stack[-1].append(x)
         if len(stack) > 1:
             return 'error: closing bracket is missing'
         if len(stack[0]) > 3:
@@ -92,19 +96,3 @@ while True:
     ret = c.parse(s)
     print(ret)
 """
-    #print(ret[0])
-    #print(ret[0][1])
-    #print(ret[0][1][2])
-    #print(ret[0][1][2][0])
-    #print(ret2[1])
-    #print(ret2[1][2])
-    #print(c.parse(s))
-    #print(c.foo(s))
-
-#print(foo(s))
-# parsed = c.parse("<a>(!p&q)")
-# print(parsed)
-# <a;(bUc)>p
-# [['<>',['a',';',['b', 'U', 'c']]], 'p']
-# !p & q
-# [['!', 'p'], '&', 'q']
