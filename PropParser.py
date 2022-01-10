@@ -84,7 +84,7 @@ class PDLparser():
         if len(stack) > 1:
             return 'error: closing bracket is missing'
         if len(stack[0]) > 3:
-            return 'error: invalid formula'
+            return 'error: invalid formula, press \'h\' for help'
         return stack.pop()
 
 """
