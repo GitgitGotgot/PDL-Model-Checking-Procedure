@@ -42,24 +42,24 @@ class Kripke:
             if len(formula) == 1:
                 return self.MCP(formula[0])
             if formula[0] == '<':
-                print('formula')
-                print(self.MCP(formula[2]).astype(int))
-                print('prog')
-                print(self.Prog(formula[1]).astype(int))
-                print('ret')
-                print((self.Prog(formula[1]) @ self.MCP(formula[2])).astype(bool))
-                # print(self.Prog(formula[1]).shape + self.MCP(formula[2]).shape)
-                print('')
+                # print('formula')
+                # print(self.MCP(formula[2]).astype(int))
+                # print('prog')
+                # print(self.Prog(formula[1]).astype(int))
+                # print('ret')
+                # print((self.Prog(formula[1]) @ self.MCP(formula[2])).astype(bool))
+                # # print(self.Prog(formula[1]).shape + self.MCP(formula[2]).shape)
+                # print('')
                 #return self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2]))
                 return (self.Prog(formula[1]) @ self.MCP(formula[2])).astype(bool)
             if formula[0] == '[':
-                print('formula')
-                print((self.MCP(formula[2])^1).astype(int))
-                print('prog')
-                print((self.Prog(formula[1])).astype(int))
-                print('ret')
-                print(((self.Prog(formula[1]) @ self.MCP(formula[2])^1)^1).astype(bool))
-                print('')
+                # print('formula')
+                # print((self.MCP(formula[2])^1).astype(int))
+                # print('prog')
+                # print((self.Prog(formula[1])).astype(int))
+                # print('ret')
+                # print(((self.Prog(formula[1]) @ self.MCP(formula[2])^1)^1).astype(bool))
+                # print('')
                 #return (self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1).astype(bool)
                 return ((self.Prog(formula[1]) @ self.MCP(formula[2])^1).astype(bool)^1).astype(bool)
             if formula[0] == 'R':
@@ -91,9 +91,11 @@ class Kripke:
             if formula[1] == '/':
                 return (self.MCP(formula[0]) + self.MCP(formula[2])).astype(bool)
             if formula[1] == '->':
+                # print(((self.MCP(formula[0])^1).astype(bool) + self.MCP(formula[2])).astype(bool))
                 return ((self.MCP(formula[0])^1).astype(bool) + self.MCP(formula[2])).astype(bool)
         else:
-            return State_V[formula]
+            # print(State_V[formula])
+            return self.State_V[formula]
 
     def Prog(self, program):
         if isinstance(program, list):
@@ -132,52 +134,58 @@ class Kripke:
             ret = (ret + prog).astype(bool)
         return ret.astype(bool)
 
-#N, State_V, Adj_M, Tests = ModelGen(file='Test.txt', sparse_matrix=False)
-#N, State_V, Adj_M, Tests = ModelGen(gen=True, sparse_matrix=True)
-N, State_V, Adj_M, Tests = ModelGen(gen=True, states=100, progs = 3, props = 3, sparse_matrix=True)
-# N, State_V, Adj_M, Tests = ModelGen(gen=True, sparse_matrix=True)
-Tests = ['[((p/q)?);a*](q&p)', '<a>(Ra)']
-Adj_M2 = {}
-for key in Adj_M.keys():
-    Adj_M2[key] = Adj_M[key].A
-    # print(Adj_M2[key].shape)
-k2 = Kripke(Adj_M2, State_V, N)
-k = Kripke(Adj_M, State_V, N)
-p = PDLparser(State_V.keys(), Adj_M.keys())
-while True:
-    s = input("Enter a logical formula: ")
-    if s == 'T':
-        if len(Tests) == 0:
-            print('Model has no available tests')
-        for t in Tests:
-            # print(t)
-            formula = p.parse(t)
-            print('test: ', formula)
-            print(timeit.Timer('k.MCP(formula)'))
-            # k.Input_Function(t)
-    elif s == 'h':
-        print("Compound formulas and programs must always be between parentheses\n"
-              "EXAMPLE: <a;(bUc)>(p->q)\n\n"
-              "Formula Operators:\n"
-              "<a>p = <a>p\n"
-              "[a]p = [a]p\n"
-              "Loop(a) = L(a)\n"
-              "Repeat(a) = R(a)\n"
-              "Negation(p) = !p\n"
-              "Logical AND = &\n"
-              "Logical OR = /\n"
-              "Implication = ->\n\n"
-              "Program Operators:\n"
-              "Negation(a) = !a\n"
-              "Test(p) = (p)?\n"
-              "Converse(p) = (p)'\n"
-              "Kleene_Plus(a) = a+\n"
-              "Kleene_Star(a) = a*\n"
-              "Composition = ;\n"
-              "Union = U\n"
-              "Intersection = X\n\n"
-              "To run all tests in the Kripke model file, insert 'T' "
-             )
-    else:
-        k.Input_Function(s)
-        # print(k.Input_Function(s) == k2.Input_Function(s))
+
+#N, State_V, Adj_M, Tests = ModelGen(random_gen=True, sparse_matrix=True)
+# N, State_V, Adj_M, Tests = ModelGen(random_gen=True, states=100, progs = 3, props = 3, sparse_matrix=True)
+# # N, State_V, Adj_M, Tests = ModelGen(random_gen=True, sparse_matrix=True)
+# Tests = ['[((p/q)?);a*](q&p)', '<a>(Ra)']
+# #ModelGen(line_gen=True, sparse_matrix=False)
+# Adj_M2 = {}
+# for key in Adj_M.keys():
+#     Adj_M2[key] = Adj_M[key].A
+#     # print(Adj_M2[key].shape)
+# k2 = Kripke(Adj_M2, State_V, N)
+
+
+# N, State_V, Adj_M, Tests = ModelGen(file='Test.txt', sparse_matrix=False)
+# k = Kripke(Adj_M, State_V, N)
+# p = PDLparser(State_V.keys(), Adj_M.keys())
+# while True:
+#     s = input("Enter a logical formula: ")
+#     if s == 'T':
+#         if len(Tests) == 0:
+#             print('Model has no available tests')
+#         for t in Tests:
+#             formula = p.parse(t)
+#             # print('test: ', formula)
+#             # print(timeit.Timer('k.MCP(formula)'))
+#             k.MCP(formula)
+#     elif s == 'h':
+#         print("Compound formulas and programs must always be between parentheses\n"
+#               "EXAMPLE: <a;(bUc)>(p->q)\n\n"
+#               "Formula Operators:\n"
+#               "<a>p = <a>p\n"
+#               "[a]p = [a]p\n"
+#               "Loop(a) = L(a)\n"
+#               "Repeat(a) = R(a)\n"
+#               "Negation(p) = !p\n"
+#               "Logical AND = &\n"
+#               "Logical OR = /\n"
+#               "Implication = ->\n\n"
+#               "Program Operators:\n"
+#               "Complement(a) = !a\n"
+#               "Test(p) = (p)?\n"
+#               "Converse(p) = (p)'\n"
+#               "Kleene_Plus(a) = a+\n"
+#               "Kleene_Star(a) = a*\n"
+#               "Composition = ;\n"
+#               "Union = U\n"
+#               "Intersection = X\n\n"
+#               "To run all tests in the Kripke model file, insert 'T' "
+#              )
+#     else:
+#         formula = p.parse(s)
+#         # print('test: ', formula)
+#         # print(timeit.Timer('k.MCP(formula)'))
+#         print(k.MCP(formula))
+#         # print(k.Input_Function(s) == k2.Input_Function(s))
