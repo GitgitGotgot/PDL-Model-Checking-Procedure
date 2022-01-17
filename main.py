@@ -77,7 +77,7 @@ def main(argv):
     # Generate the model
     k = Kripke(Adj_M, State_V, N)
 
-    StdTests = ['([a*]p)->([a;(a;(a;(a;a)))]p)', '(!([a]p))->(!([aUb]p))']
+    StdTests = ['([a*]p)->([a;(a;(a;(a;a)))]p)', '(!([a]p))->(!([aUb]p))', '<((p?;a)*);(!(p?))>p']
 
     # Run tests from file
     if RunTests:
@@ -117,12 +117,12 @@ def main(argv):
                       "Composition = ;\n"
                       "Union = U\n"
                       "Intersection = X\n\n"
-                      "To run all tests, insert 't' "
+                      "To run all tests, insert 'T' "
                       )
-            elif s=='t':
-                for t in StdTests:
-                    print("Test:" + str(t))
-                    formula = parse.FormulaParser(t, State_V.keys(), list(Adj_M.keys()).remove('IDENTITY'))
+            elif s=='T':
+                for test in StdTests:
+                    print("Test:" + str(test))
+                    formula = parse.FormulaParser(test, State_V.keys(), list(Adj_M.keys()).remove('IDENTITY'))
                     print('Result:' + str(k.MCP(formula)))
                     t = timeit.timeit(lambda:'k.MCP(formula)')
                     print('Time:' + str(t))
