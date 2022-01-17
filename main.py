@@ -70,7 +70,7 @@ def main(argv):
               "To generate a random model enter: python main.py --random \"model_size\"\n"
               "To generate a model that forms a straight line enter: python main.py --line \"model_size\" \"p_loc\"\n"
               "To generate a model that forms a circle enter: python main.py --circle \"model_size\" \"p_loc\"\n"
-              "To generate a model that forms a rectangular grid enter: python main.py --grid \"model_size^2\" \"p_loc\"\n\n"
+              "To generate a model that forms a rectangular grid enter: python main.py --grid \"model_size\" \"p_loc\"\n\n"
               "Input for model size or p_loc will set to default (50 and 0 respectively) if they're not a positive integer\n"
               "For sparse matrix structures add --sparse at the end of the command line\n"
               )
