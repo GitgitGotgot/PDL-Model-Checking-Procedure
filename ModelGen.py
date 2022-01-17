@@ -93,6 +93,7 @@ def RandomModel(states=50, props=10, progs=14, sparse_matrix=False):
         for i in range(progs):
             Progs[PROGLETTERS[i]] = sparse.random(states, states, density=0.01, dtype=bool, format='csr')
     else:
+        Progs['IDENTITY'] = np.identity(states, dtype=bool)
         for i in range(progs):
             Progs[PROGLETTERS[i]] = np.random.choice([0,1], size=(states,states), p=[.8, .2]).astype(bool)
     return Props, Progs
