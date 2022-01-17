@@ -139,6 +139,28 @@ def CircleModel(states=50, p_loc=False, sparse_matrix=False):
         Progs['a'] = M
     return Props, Progs
 
+def GridModel(states=7, p_loc=False, sparse_matrix=False):
+    Progs = {}
+    Props = {}
+    N = states*states
+    Prop = np.zeros(N, dtype=bool)
+    # check if user selected a specific state in which p is true, otherwhise the last state is selected
+    if p_loc:
+        Prop[int(p_loc)] = True
+    else:
+        Prop[N-1] = True
+    Props['p'] = Prop
+    Progs['IDENTITY'] = sparse.identity(N, dtype=bool, format='csr') if sparse_matrix else np.identity(N, dtype=bool)
+    A = np.eye(N, k=1, dtype=bool)
+    for i in range(states-1, N, states):
+        # print(A)
+        A[i] = np.zeros(N, dtype=bool)
+    Progs['a'] = sparse.csr_matrix(A) if sparse_matrix else A
+    Progs['b'] =  sparse.eye(N, k=states, dtype=bool, format='csr') if sparse_matrix else np.eye(N, k=states, dtype=bool)
+    # print(Progs['a'].A.astype(int))
+    # print(Progs['b'].A.astype(int))
+    return Props, Progs
+
 def ModelGen(file=False, random_gen=False, line_gen=False, circle_gen=False, states=50, props=10, progs=15, sparse_matrix=False):
     components = ['STATES', 'PROPS', 'PROGS', 'TESTS']
     mode = None
