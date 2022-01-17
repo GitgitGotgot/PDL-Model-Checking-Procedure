@@ -43,6 +43,8 @@ class Kripke:
                 # # print(self.Prog(formula[1]).shape + self.MCP(formula[2]).shape)
                 # print('')
                 #return self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2]))
+                # if len(formula) == 2:
+                #     return self.Prog(formula[1])
                 return (self.Prog(formula[1]) @ self.MCP(formula[2]))
             if formula[0] == '[':
                 # print('formula')
@@ -53,6 +55,8 @@ class Kripke:
                 # print(((self.Prog(formula[1]) @ self.MCP(formula[2])^1)^1).astype(bool))
                 # print('')
                 #return (self.diamond_op(self.Prog(formula[1]), self.MCP(formula[2])^1)^1).astype(bool)
+                # if len(formula) == 2:
+                #     return self.Prog(formula[1])
                 return ~((self.Prog(formula[1]) @ self.MCP(formula[2])^1).astype(bool))
             if formula[0] == 'L':
                 prog = self.Prog(formula[1])
