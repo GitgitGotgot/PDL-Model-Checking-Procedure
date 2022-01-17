@@ -21,7 +21,7 @@ def FormulaParser(i_s, atoms, programs):
     active_program = False
     stack = [[]]
     i_s = i_s.replace(" ", "")
-    print(i_s)
+    # print(i_s)
     for x in i_s:
         if x == '!':
             negation = True
@@ -29,7 +29,7 @@ def FormulaParser(i_s, atoms, programs):
             if imp_arrow:
                 print('error: invalid formula, expected implication arrow due to -')
                 return False
-            if open_brac['<']:
+            elif open_brac['<']:
                 active_program = False
                 bimp_arrow = True
                 open_brac[x] = False
@@ -51,6 +51,7 @@ def FormulaParser(i_s, atoms, programs):
                 stack[-1].append('<->')
                 bimp_arrow = False
             else:
+                # print(stack)
                 stack.pop()
                 if len(stack[-1][-1]) > 3:
                     print('error: to many arguments between parentheses')
