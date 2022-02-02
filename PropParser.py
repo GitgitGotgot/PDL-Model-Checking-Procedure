@@ -1,18 +1,9 @@
 # kripke model is already given so we know the atoms
 # https://stackoverflow.com/questions/17140850/how-to-parse-a-string-and-return-a-nested-array/17141899#17141899
 
-# ! is logical negation (and the only unary operator)/NOT
-# & is logical conjunction/AND
-# / is logical disjunction/OR
-#
-# * is kleene star operator
-# + is kleene plus operator
-# ? is test unary_operators
-# ' is complement
 def FormulaParser(i_s, atoms, programs):
     open_brac = {'<':False, '[':False, '(':False}
     close_brac = {'>':'<', ']':'[', ')':'('}
-    unary_op = {'!':False, '?':False}
     imp_arrow = False
     bimp_arrow = False
     negation = False
@@ -21,9 +12,8 @@ def FormulaParser(i_s, atoms, programs):
     active_program = False
     stack = [[]]
     i_s = i_s.replace(" ", "")
-    # print(i_s)
     for x in i_s:
-        if x == '!':
+        if x == '~':
             negation = True
         elif x == '-':
             if imp_arrow:
@@ -51,7 +41,6 @@ def FormulaParser(i_s, atoms, programs):
                 stack[-1].append('<->')
                 bimp_arrow = False
             else:
-                # print(stack)
                 stack.pop()
                 if len(stack[-1][-1]) > 3:
                     print('error: to many arguments between parentheses')
@@ -61,16 +50,12 @@ def FormulaParser(i_s, atoms, programs):
                     return False
                 open_brac[close_brac[x]] = False
                 active_program = False
-        elif x == '+' or x == '*' or x == '?' or x == "'":
-            if not active_program:
-                print('error: program operator used outside program')
-                return False
-            else:
-                stack[-1][-1] = [x, stack[-1][-1]]
+        elif x == '+' or x == '*' or x == '?' or x == '^':
+            stack[-1][-1] = [x, stack[-1][-1]]
         elif x == '(':
             if negation:
                 negation = False
-                stack[-1].append(['!',[]])
+                stack[-1].append(['~',[]])
                 stack.append(stack[-1][-1][-1])
             else:
                 stack[-1].append([])
@@ -84,15 +69,8 @@ def FormulaParser(i_s, atoms, programs):
                 print('error: to many arguments between parentheses')
                 return False
         else:
-            # if active_program and x not in valid_prog_op and x not in programs and x not in atoms:
-            #     print('error: invalid character in program')
-            # elif not active_program and x not in valid_prop_op and x not in atoms:
-            #     print('error: invalid character in formula')
-            # if imp_arrow:
-            #     print('error: invalid formula, expected implication arrow due to -')
-            # else:
             if negation:
-                stack[-1].append(['!', x])
+                stack[-1].append(['~', x])
                 negation = False
             else:
                 stack[-1].append(x)
@@ -109,13 +87,9 @@ def FormulaParser(i_s, atoms, programs):
 """
 while True:
     c = PDLparser(['p','q','r','s'],['a','b','c','d'])
-    # !(p&q) Or (!p & !q)
+    # ~(p&q) Or (~p & ~q)
     s = input("Enter a logical formula: ")
     #ret = c.parse_rec(s)
     ret = c.parse(s)
     print(ret)
 """
-# while True:
-#     s = input("Enter a logical formula: ")
-#     print(FormulaParser(s, ['p','q','r','s'],['a','b','c','d']))
-    # FormulaParser(i_s, ['p','q','r','s'],['a','b','c','d'])
